@@ -149,6 +149,20 @@ model ErrorLog {
   @@index([occurredAt])
 }
 
+model RawData {
+  id        Int      @id @default(autoincrement())
+  currency  String
+  provider  String
+  endpoint  String?
+  payload   String
+  fetchedAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([currency, fetchedAt])
+  @@index([provider, fetchedAt])
+  @@index([createdAt])
+}
+
 model Relayer {
   id            Int      @id @default(autoincrement())
   name          String
