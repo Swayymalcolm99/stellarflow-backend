@@ -139,7 +139,7 @@ model MultiSigSignature {
 
 // Error log table for tracking provider/fetcher failures
 model ErrorLog {
-  id           Int      @id @default(autoincrement())
+  id           String   @id  // K-sortable KSUID (26-char Crockford Base32)
   providerName String   // e.g., "CoinGecko", "KESRateFetcher"
   errorMessage String?
   occurredAt   DateTime
@@ -324,7 +324,7 @@ model PendingSignature {
 // Audit Log Table for System Actions
 // Comprehensive audit trail for all sensitive system operations
 model AuditLog {
-  id                    Int       @id @default(autoincrement())
+  id                    String    @id  // K-sortable KSUID (26-char Crockford Base32)
   eventType             String    @db.VarChar(50)    // e.g., "CONSENSUS_INITIATED", "CONSENSUS_APPROVED", "ACTION_EXECUTED"
   actionType            String?   @db.VarChar(50)    // The type of action being audited (e.g., "HALT", "UPGRADE")
   relatedId             Int?                         // ID of related record (e.g., PendingConsensus.id)

@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { generateKsuid } from "../utils/ksuid.js";
 
 export enum UserAuditEventType {
   USER_LOGIN_SUCCESS = "USER_LOGIN_SUCCESS",
@@ -25,10 +26,21 @@ export interface AuditContext {
 }
 
 export async function logUserAccessEvent(ctx: AuditContext): Promise<void> {
-  const { userId, actorId, ipAddress, userAgent, resourceType, resourceId, action, before, after } = ctx;
+  const {
+    userId,
+    actorId,
+    ipAddress,
+    userAgent,
+    resourceType,
+    resourceId,
+    action,
+    before,
+    after,
+  } = ctx;
 
   await prisma.auditLog.create({
     data: {
+      id: generateKsuid(),
       eventType: action,
       actorPublicKey: userId ? `user:${userId}` : "system",
       actorName: userId ? `user:${userId}` : "system",
@@ -77,6 +89,7 @@ export async function logLoginFailed(
 ): Promise<void> {
   await prisma.auditLog.create({
     data: {
+      id: generateKsuid(),
       eventType: UserAuditEventType.USER_LOGIN_FAILED,
       actorPublicKey: `email:${email}`,
       actorName: `email:${email}`,
