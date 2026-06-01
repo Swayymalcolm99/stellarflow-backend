@@ -7,6 +7,7 @@ import stellarProvider from "../lib/stellarProvider";
 import dotenv from "dotenv";
 import { signer } from "../signer";
 import { logger } from "../utils/logger";
+import { parseBase64ToPositiveNumber } from "../serialization/helpers.js";
 
 dotenv.config();
 
@@ -187,13 +188,14 @@ export class SorobanEventListener {
           continue;
         }
 
-        // Decode base64 value to string then parse as number
-        const valueStr = atob(String(valueBase64));
-        const rate = parseFloat(valueStr);
+        // Use optimized base64-to-positive-number conversion that eliminates
+        // intermediate string variable and redundant isNaN checks. Combines decode +
+        // parse + validation into single operation for use in tight parsing loop.
+        const rate = parseBase64ToPositiveNumber(String(valueBase64));
 
-        if (isNaN(rate)) {
+        if (rate === null) {
           logger.warn(
-            `[EventListener] Invalid rate value for ${currency}: ${valueStr}`,
+            `[EventListener] Invalid rate value for ${currency}`,
             { isNetwork: true }
           );
           continue;
