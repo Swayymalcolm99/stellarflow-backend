@@ -19,10 +19,32 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import socket
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 import aiohttp
+
+
+# ---------------------------------------------------------------------------
+# Socket keepalive configuration
+# ---------------------------------------------------------------------------
+
+# Use low-level OS socket keepalive to detect and tear down dead peer
+# connections aggressively. This protects the client from hung TCP sockets
+# when a remote peer drops the connection without a proper FIN/RST.
+_DEFAULT_SOCKET_OPTIONS = [
+    (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),
+]
+
+if hasattr(socket, "TCP_KEEPIDLE"):
+    _DEFAULT_SOCKET_OPTIONS.extend(
+        [
+            (socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 2),
+            (socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 2),
+            (socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3),
+        ]
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +128,12 @@ def make_session(**kwargs: Any) -> aiohttp.ClientSession:
     """
     # Force the module-level timeout regardless of what the caller passes.
     kwargs["timeout"] = _TIMEOUT
+
+    if "connector" not in kwargs:
+        kwargs["connector"] = aiohttp.TCPConnector(
+            socket_options=_DEFAULT_SOCKET_OPTIONS,
+        )
+
     return aiohttp.ClientSession(**kwargs)
 
 
